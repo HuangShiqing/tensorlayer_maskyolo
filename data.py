@@ -451,6 +451,66 @@ def data_generator(chunks):
         yield image_data, boxes_labeled
         count += 1
 
+import cv2
+import matplotlib.pyplot as plt
+import numpy as np
+
+img = cv2.imread('D:/DeepLearning/data2/VOCdevkit/VOC2012/SegmentationClass/2007_000129.png')
+img = img[:, :, :: -1]
+img_w = img.shape[1]
+img_h = img.shape[0]
+
+ratio = img_w / img_h
+net_w, net_h = 416, 416
+if ratio < 1:
+    new_h = int(net_h)
+    new_w = int(net_h * ratio)
+else:
+    new_w = int(net_w)
+    new_h = int(net_w / ratio)
+im_sized = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_NEAREST)
+dx = net_w - new_w
+dy = net_h - new_h
+
+if dx > 0:
+    im_sized = np.pad(im_sized, ((0, 0), (int(dx / 2), 0), (0, 0)), mode='constant', constant_values=0)
+    im_sized = np.pad(im_sized, ((0, 0), (0, dx - int(dx / 2)), (0, 0)), mode='constant', constant_values=0)
+else:
+    im_sized = im_sized[:, -dx:, :]
+if dy > 0:
+    im_sized = np.pad(im_sized, ((int(dy / 2), 0), (0, 0), (0, 0)), mode='constant', constant_values=0)
+    im_sized = np.pad(im_sized, ((0, dy - int(dy / 2)), (0, 0), (0, 0)), mode='constant', constant_values=0)
+else:
+    im_sized = im_sized[-dy:, :, :]
+
+# plt.imshow(im_sized)
+# plt.show()
+
+im_sized = im_sized[:, :, ::-1]
+im_sized = im_sized.copy()
+for y in range(51):
+    cv2.line(im_sized, (0, 8 * (y + 1)), (416, 8 * (y + 1)), (0, 0, 255), 1)
+for x in range(51):
+    cv2.line(im_sized, (8 * (x + 1), 0), (8 * (x + 1), 416), (0, 0, 255), 1)
+
+# a = im_sized[0][0]
+# if im_sized[0][0][0] == 0 and im_sized[0][0][1] == 0 and im_sized[0][0][2] == 0:
+#     print('ok')
+#
+# for x in range(51):
+#     for y in range(51):
+#         index = 0
+#         for w in range(8):
+#             for h in range(8):
+#                 if im_sized[][][0]
+
+cv2.imwrite('2.bmp', im_sized)
+# cv2.imwrite('1.png', im_sized, [int(cv2.IMWRITE_PNG_COMPRESSION), 0])
+exit()
+
+
+
+
 # annotations_path = Gb_ann_path
 # pick = Gb_label
 # chunks = pascal_voc_clean_xml(annotations_path, pick)
