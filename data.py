@@ -86,8 +86,8 @@ def biger(max_index):
     return result
 
 
-img = cv2.imread('D:/DeepLearning/data2/VOCdevkit/VOC2012/SegmentationClass/2007_000830.png')
-origin_img = cv2.imread('D:/DeepLearning/data2/VOCdevkit/VOC2012/JPEGImages/2007_000830.jpg')
+img = cv2.imread('/media/hsq/新加卷/ubuntu/data/VOC2007/VOCdevkit/VOC2007/SegmentationClass/001763.png')
+origin_img = cv2.imread('/media/hsq/新加卷/ubuntu/data/VOC2007/VOCdevkit/VOC2007/JPEGImages/001763.jpg')
 img = img[:, :, :: -1]
 origin_img = origin_img[:, :, :: -1]
 im_sized = resize_img(img)
@@ -95,11 +95,11 @@ origin_img_sized = resize_img(origin_img)
 
 colors = [[0, 0, 0], [128, 0, 0], [0, 128, 0], [128, 128, 0], [0, 0, 128], [128, 0, 128], [0, 128, 128],
           [128, 128, 128], [64, 0, 0], [192, 0, 0], [64, 128, 0], [192, 128, 0], [64, 0, 128], [192, 0, 128],
-          [64, 128, 128], [192, 128, 128], [0, 64, 0], [128, 64, 0], [0, 192, 0], [128, 192, 0], [0, 64, 128], ]
+          [64, 128, 128], [192, 128, 128], [0, 64, 0], [128, 64, 0], [0, 192, 0], [128, 192, 0], [0, 64, 128]]
 labels = ['background', 'aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat', 'chair', 'cow',
           'dining table', 'dog', 'horse', 'motorbike', 'person', 'potted plant', 'sheep', 'sofa', 'train', 'tvmonitor']
 
-xml_labels = ['chair', 'dining table']
+xml_labels = ['dog', 'cat']
 results = list()
 for label in labels:
     if label not in xml_labels:
@@ -115,9 +115,12 @@ max_index = np.argmax(results, axis=0)
 origin_mask = biger(max_index)
 
 for i in range(3):
-    origin_img_sized[:, :, i] = np.where(origin_mask > 0, origin_img_sized[:, :, i] * 0.5 + 0.5 * [128, 0, 0][i],
-                                         # colors[origin_mask][i]
-                                         origin_img_sized[:, :, i])
+    for j in range(len(xml_labels)):
+        origin_img_sized[:, :, i] = np.where(origin_mask == labels.index(xml_labels[j]),
+                                             origin_img_sized[:, :, i] * 0.5 + 0.5 *
+                                             colors[labels.index(xml_labels[j])][i],
+                                             # colors[origin_mask][i]
+                                             origin_img_sized[:, :, i])
 plt.imshow(origin_img_sized)
 plt.show()
 exit()
