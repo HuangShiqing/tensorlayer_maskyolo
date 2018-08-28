@@ -8,64 +8,19 @@ from model import infenence
 import time
 
 
-def iou(pre_boxes, true_boxes):
-    pred_xy = pre_boxes[..., :2]
-    pred_wh = pre_boxes[..., 2:4]
-    true_xy = true_boxes[..., :2]
-    true_wh = true_boxes[..., 2:4]
+def loss(y_pred, y_true):
+    out_c = tf.expand_dims(tf.sigmoid(y_pred[..., 0]), axis=-1)
+    out_class = tf.expand_dims(tf.sigmoid(y_pred[..., 1]))
 
-    pred_wh_half = pred_wh / 2.
-    pred_mins = pred_xy - pred_wh_half
-    pred_maxes = pred_xy + pred_wh_half
+    loss_c = tf.reduce_sum(
+        object_mask * tf.nn.sigmoid_cross_entropy_with_logits(logits=net_out_reshape[..., 4:5],
+                                                              labels=adjusted_true_c) + (
+                1 - object_mask) * tf.nn.sigmoid_cross_entropy_with_logits(logits=net_out_reshape[..., 4:5],
+                                                                           labels=adjusted_true_c) * ignore_masks) / batch_size
+    loss_class = tf.reduce_sum(
+        object_mask * tf.nn.sigmoid_cross_entropy_with_logits(logits=net_out_reshape[..., 5:],
+                                                              labels=adjusted_true_class)) / batch_size
 
-    true_wh_half = true_wh / 2.
-    true_mins = true_xy - true_wh_half
-    true_maxes = true_xy + true_wh_half
-
-    intersect_mins = tf.maximum(pred_mins, true_mins)
-    intersect_maxes = tf.minimum(pred_maxes, true_maxes)
-
-    intersect_wh = tf.maximum(intersect_maxes - intersect_mins, 0.)
-    intersect_areas = intersect_wh[..., 0] * intersect_wh[..., 1]
-
-    true_areas = true_wh[..., 0] * true_wh[..., 1]
-    pred_areas = pred_wh[..., 0] * pred_wh[..., 1]
-
-    union_areas = pred_areas + true_areas - intersect_areas
-    iou_score = tf.truediv(intersect_areas, union_areas)
-
-    return iou_score
-
-
-# C = 80
-# batch_size = Gb_batch_size
-# input_size = [416, 416]
-# ignore_thresh = 0.5
-# obj_scale = 5
-# noobj_scale = 1
-# xywh_scale = 1
-# class_scale = 1
-# anchors = tf.constant([10, 13, 16, 30, 33, 23, 30, 61, 62, 45, 59, 119, 116, 90, 156, 198, 373, 326], dtype='float',
-#                       shape=[1, 1, 1, 9, 2])
-# anchors = tf.constant([208, 208, 208, 208, 208, 208, 208, 208, 208, 208, 208, 208, 208, 208, 208, 208, 208, 208],
-#                       dtype='float', shape=[1, 1, 1, 9, 2])
-# anchors = tf.constant(Gb_anchors, dtype='float', shape=[1, 1, 1, 9, 2])
-
-
-# y_pred = list()
-# y_true = list()
-# y_pred.append(tf.tile(tf.reshape([-1.098, -1.098, 1, 1, 0.8, 0.2, 0.3], shape=[1, 1, 1, 1, 7]), [16, 13, 13, 3, 1]))
-# y_pred.append(tf.placeholder(tf.float32, [None, 13, 13, 3 * (5 + len(Gb_label))]))
-# y_pred.append(tf.placeholder(tf.float32, [None, 26, 26, 3 * (5 + len(Gb_label))]))
-# y_pred.append(tf.placeholder(tf.float32, [None, 52, 52, 3 * (5 + len(Gb_label))]))
-#
-# y_true.append(tf.placeholder(tf.float32, [None, 13, 13, 3, 5 + len(Gb_label)]))
-# y_true.append(tf.placeholder(tf.float32, [None, 26, 26, 3, 5 + len(Gb_label)]))
-# y_true.append(tf.placeholder(tf.float32, [None, 52, 52, 3, 5 + len(Gb_label)]))
-# origin_boxes = tf.placeholder(tf.float32, [None, 1, 1, 1, 8, 4])
-# origin_boxes = tf.tile(tf.reshape([200.0, 200.0, 208.0, 208.0], shape=[1, 1, 1, 1, 1, 4]), [16, 1, 1, 1, 8, 1])
-# pred_yolo_2 = tf.placeholder(tf.float32, [None, 26, 26, 255])
-# pred_yolo_3 = tf.placeholder(tf.float32, [None, 52, 52, 255])
 
 def yolo3_loss(y_pred, y_true):
     anchors = tf.constant(Gb_anchors, dtype='float', shape=[1, 1, 1, 9, 2])

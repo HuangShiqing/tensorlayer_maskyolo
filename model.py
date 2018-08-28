@@ -113,6 +113,14 @@ def infenence(input, n_class):
     net = conv2d_unit(net, filters=256, kernels=3, strides=1, bn=True, name='104')
     net = conv2d_unit(net, filters=3 * (5 + n_class), kernels=1, strides=1, act='liner', bn=False, name='105')
     detection(net, '106')
-    net_out = [Gb_all_layer_out[106], Gb_all_layer_out[94], Gb_all_layer_out[82]]
-
+    # net_out = [Gb_all_layer_out[106], Gb_all_layer_out[94], Gb_all_layer_out[82]]
+    net_out = Gb_all_layer_out[106]
     return net_out
+
+
+if __name__ == '__main__':
+    n_class = 2
+    input_pb = tf.placeholder(tf.float32, [None, 416, 416, 3])
+    net_out = infenence(input_pb, n_class)
+
+    exit()
