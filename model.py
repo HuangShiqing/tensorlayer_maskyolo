@@ -3,8 +3,9 @@ from tensorlayer.layers import *
 from net import Gb_all_layer_out, ResLayer, RouteLayer, upsample, conv2d_unit, detection
 
 
-def infenence(input, n_class):
+def infenence(input):
     # n_class = 80
+    n = 2
     net = InputLayer(input, name='input')
     net = conv2d_unit(net, filters=32, kernels=3, strides=1, bn=True, name='0')
     net = conv2d_unit(net, filters=64, kernels=3, strides=2, bn=True, name='1')
@@ -87,7 +88,7 @@ def infenence(input, n_class):
     net = conv2d_unit(net, filters=1024, kernels=3, strides=1, bn=True, name='78')
     net = conv2d_unit(net, filters=512, kernels=1, strides=1, bn=True, name='79')
     net = conv2d_unit(net, filters=1024, kernels=3, strides=1, bn=True, name='80')
-    net = conv2d_unit(net, filters=3 * (5 + n_class), kernels=1, strides=1, act='liner', bn=False, name='81')
+    net = conv2d_unit(net, filters=n, kernels=1, strides=1, act='liner', bn=False, name='81')
     detection(net, '82')
     net = RouteLayer(net, [79], name='83')
     net = conv2d_unit(net, filters=256, kernels=1, strides=1, bn=True, name='84')
@@ -99,7 +100,7 @@ def infenence(input, n_class):
     net = conv2d_unit(net, filters=512, kernels=3, strides=1, bn=True, name='90')
     net = conv2d_unit(net, filters=256, kernels=1, strides=1, bn=True, name='91')
     net = conv2d_unit(net, filters=512, kernels=3, strides=1, bn=True, name='92')
-    net = conv2d_unit(net, filters=3 * (5 + n_class), kernels=1, strides=1, act='liner', bn=False, name='93')
+    net = conv2d_unit(net, filters=n, kernels=1, strides=1, act='liner', bn=False, name='93')
     detection(net, '94')
     net = RouteLayer(net, [91], name='95')
     net = conv2d_unit(net, filters=128, kernels=1, strides=1, bn=True, name='96')
@@ -111,7 +112,7 @@ def infenence(input, n_class):
     net = conv2d_unit(net, filters=256, kernels=3, strides=1, bn=True, name='102')
     net = conv2d_unit(net, filters=128, kernels=1, strides=1, bn=True, name='103')
     net = conv2d_unit(net, filters=256, kernels=3, strides=1, bn=True, name='104')
-    net = conv2d_unit(net, filters=3 * (5 + n_class), kernels=1, strides=1, act='liner', bn=False, name='105')
+    net = conv2d_unit(net, filters=n, kernels=1, strides=1, act='liner', bn=False, name='105')
     detection(net, '106')
     # net_out = [Gb_all_layer_out[106], Gb_all_layer_out[94], Gb_all_layer_out[82]]
     net_out = Gb_all_layer_out[106]
