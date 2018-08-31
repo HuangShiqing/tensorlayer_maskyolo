@@ -11,7 +11,7 @@ Gb_batch_size = 16
 
 Gb_ckpt_dir = './ckpt/'
 # Gb_model_name = 'test.ckpt'
-Gb_save_frequency = 1000
+Gb_save_frequency = 499
 Gb_epoch = 100
 Gb_learning_rate = 0.0001
 Gb_jitter = 0.1

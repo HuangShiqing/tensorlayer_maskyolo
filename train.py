@@ -6,7 +6,7 @@ from varible import *
 from data import data_generator, read_xml
 from model import infenence
 import time
-
+import os
 
 def yolo_loss(y_pred, y_true):
     # out_c = tf.sigmoid(y_pred[..., 0])  # tf.expand_dims(tf.sigmoid(y_pred[..., 0]), axis=-1)
@@ -213,11 +213,22 @@ def main():
                 print("Loss %fs  : Epoch %d  %d/%d: Step %d  took %fs" % (
                     loss, epoch, step_epoch, n_step_epoch, step, time.time() - start_time))
 
-                if step % save_frequency == 0 and loss < min_loss:
+                if step % 1000 == 0 and loss < min_loss:
                     print("Save model " + "!" * 10)
                     save_path = saver.save(sess,
                                            final_dir + 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss))
                     min_loss = loss
+
+                if step % save_frequency == 0:
+                    if step != save_frequency:
+                        os.remove(temp+'.data-00000-of-00001')
+                        os.remove(temp + '.index')
+                        os.remove(temp + '.meta')
+
+                    print("Save model " + "!" * 10)
+                    save_path = saver.save(sess,
+                                           final_dir + 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss))
+                    temp = 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss)
 
 
 if __name__ == '__main__':
