@@ -9,27 +9,36 @@ import time
 
 
 def yolo_loss(y_pred, y_true):
-    out_c = tf.sigmoid(y_pred[..., 0])  # tf.expand_dims(tf.sigmoid(y_pred[..., 0]), axis=-1)
-    out_class = tf.sigmoid(y_pred[..., 1])  # * len(Gb_labels)  # tf.expand_dims(tf.sigmoid(y_pred[..., 1]))
+    # out_c = tf.sigmoid(y_pred[..., 0])  # tf.expand_dims(tf.sigmoid(y_pred[..., 0]), axis=-1)
+    # out_class = tf.sigmoid(y_pred[..., 1])  # * len(Gb_labels)  # tf.expand_dims(tf.sigmoid(y_pred[..., 1]))
 
     object_mask = tf.where(y_true != 0, tf.ones_like(y_true), tf.zeros_like(y_true))
     noobject_mask = 1 - object_mask
     # object_mask = y_true != 0
     # noobject_mask = y_true == 0
     true_c = object_mask
-    true_class = y_true / len(Gb_labels)
+    true_class = y_true / (len(Gb_labels))
 
-    loss_c = tf.reduce_sum(5 * object_mask * tl.cost.binary_cross_entropy(output=out_c, target=true_c)) / Gb_batch_size
+    loss_c = tf.reduce_sum(
+        5 * object_mask * tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred[..., 0], labels=true_c)) / Gb_batch_size
     # noobject_mask * tl.cost.binary_cross_entropy(output=out_c, target=true_c)
-    loss_class = tf.reduce_sum(
-        5 * object_mask * tl.cost.binary_cross_entropy(output=out_class, target=true_class, epsilon=1e-7) + \
-        noobject_mask * tl.cost.binary_cross_entropy(output=out_class, target=true_class, epsilon=1e-7)) / Gb_batch_size
-    loss_sum = loss_c + loss_class
-    # tf.summary.scalar('/loss', loss_sum)
-    # tf.summary.scalar('/loss_c', loss_c)
-    # tf.summary.scalar('/loss_class', loss_class)
-    loss_sum = tf.Print(loss_sum, [loss_c, loss_class])
-
+    # loss_class = tf.reduce_sum(
+    #     5 * object_mask * tl.cost.binary_cross_entropy(output=out_class, target=true_class, epsilon=1e-7) + \
+    #     noobject_mask * tl.cost.binary_cross_entropy(output=out_class, target=true_class, epsilon=1e-7)) / Gb_batch_size
+    loss_class_obj = tf.reduce_sum(
+        5 * object_mask * tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred[..., 1],
+                                                                  labels=true_class)) / Gb_batch_size
+    loss_class_noobj = tf.reduce_sum(
+        noobject_mask * tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred[..., 1],
+                                                                labels=true_class)) / Gb_batch_size
+    loss_sum = loss_c + loss_class_obj + loss_class_noobj
+    # loss_sum = loss_c + loss_class
+    tf.summary.scalar('/loss', loss_sum)
+    tf.summary.scalar('/loss_c', loss_c)
+    tf.summary.scalar('/loss_class_obj', loss_class_obj)
+    tf.summary.scalar('/loss_class_noobj', loss_class_noobj)
+    # loss_sum = tf.Print(loss_sum, [loss_c, loss_class])
+    # loss_sum = tf.Print(loss_sum, [loss_c, loss_class_obj, loss_class_noobj])
     return loss_sum
 
 
@@ -165,8 +174,8 @@ def main():
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
 
-        # if tf.train.get_checkpoint_state('./ckpt3/'):  # 确认是否存在
-        #     saver.restore(sess, './ckpt3/' + "test.ckpt")
+        # if tf.train.get_checkpoint_state('./ckpt2/'):  # 确认是否存在
+        #     saver.restore(sess, './ckpt2/' + "ep094-step17000-loss61286.484")
         #     print("load ok!")
         # else:
         #     print("ckpt文件不存在")
@@ -192,12 +201,13 @@ def main():
                                    feed_dict={input_pb: origin_img_sizeds, y_true_pb: segment_datas})
 
                 # 50倍打印频率的整数倍step，写进TensorBorder一次
-                # if step + 1 == 1 or (step + 1) % 1 == 0:
-                #     summary_str = sess.run(summary_op)
-                #     # , feed_dict={input_pb: img, y_true_pb_1: lable_box[0],
-                #     #               y_true_pb_2: lable_box[1],
-                #     #               y_true_pb_3: lable_box[2]})
-                #     train_writer.add_summary(summary_str, step)
+                if step + 1 == 1 or (step + 1) % 1 == 0:
+                    summary_str = sess.run(summary_op,
+                                           feed_dict={input_pb: origin_img_sizeds, y_true_pb: segment_datas})
+                    # , feed_dict={input_pb: img, y_true_pb_1: lable_box[0],
+                    #               y_true_pb_2: lable_box[1],
+                    #               y_true_pb_3: lable_box[2]})
+                    train_writer.add_summary(summary_str, step)
 
                 # 每step打印一次该step的loss
                 print("Loss %fs  : Epoch %d  %d/%d: Step %d  took %fs" % (
@@ -206,8 +216,7 @@ def main():
                 if step % save_frequency == 0 and loss < min_loss:
                     print("Save model " + "!" * 10)
                     save_path = saver.save(sess,
-                                           final_dir + 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss),
-                                           global_step=step)
+                                           final_dir + 'ep{0:03d}-step{1:d}-loss{2:.3f}'.format(epoch, step, loss))
                     min_loss = loss
 
 
