@@ -17,7 +17,7 @@ def yolo_loss(y_pred, y_true):
     noobject_mask = 1 - object_mask
 
     true_c = object_mask
-    true_class = y_true / (len(Gb_labels))
+    true_class = y_true / (len(Gb_labels)-1)
 
     loss_c = tf.reduce_sum(
         5 * object_mask * tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred[..., 0], labels=true_c)) / Gb_batch_size

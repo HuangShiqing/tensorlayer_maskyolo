@@ -138,21 +138,23 @@ else:
 
 from data import resize_img, visualization
 
-img_path = 'C:/Users/john/Desktop/timg.jpg'#'D:/DeepLearning/data2/VOCdevkit/VOC2012/JPEGImages/2007_000170.jpg'
-origin_img = cv2.imread(img_path)
-origin_img = origin_img[:, :, :: -1]
-origin_img = resize_img(origin_img)
-img = origin_img / 255.
-img = np.expand_dims(img, axis=0)
+while (True):
+    img_path = input('input_path: ')
+    # img_path = 'C:/Users/john/Desktop/timg.jpg'#'D:/DeepLearning/data2/VOCdevkit/VOC2012/JPEGImages/2007_000170.jpg'
+    origin_img = cv2.imread(img_path)
+    origin_img = origin_img[:, :, :: -1]
+    origin_img = resize_img(origin_img)
+    img = origin_img / 255.
+    img = np.expand_dims(img, axis=0)
 
-adjusted_out = tf.sigmoid(net_out)
-out = sess.run(adjusted_out, feed_dict={input_pb: img})
+    adjusted_out = tf.sigmoid(net_out)
+    out = sess.run(adjusted_out, feed_dict={input_pb: img})
 
-out = out[0, :, :, 1]
-out = out * 21
-out = np.floor(out)
-out = out.astype(np.uint8)
-cv2.imwrite('out1.bmp',out)
-visualization(origin_img, out)
+    out = out[0, :, :, 1]
+    out = out * 20
+    out = np.floor(out)
+    out = out.astype(np.uint8)
+    cv2.imwrite('out1.bmp', out)
+    visualization(origin_img / 255, out)
 
-exit()
+    exit()

@@ -159,15 +159,15 @@ def visualization(origin_img_sized, segment_data):
             origin_img_sized[:, :, i] = np.where(origin_mask == j,
                                                  origin_img_sized[:, :, i] * 0.5 + 0.5 * Gb_colors[j][i],
                                                  origin_img_sized[:, :, i])
-    plt.imshow(origin_img_sized)
-    plt.show()
-    # origin_img_sized = origin_img_sized[:, :, ::-1]
+    # plt.imshow(origin_img_sized)
+    # plt.show()
+    origin_img_sized = origin_img_sized[:, :, ::-1]
     # origin_img_sized = origin_img_sized.copy()
     # for y in range(51):
     #     cv2.line(origin_img_sized, (0, 8 * (y + 1)), (416, 8 * (y + 1)), (0, 0, 255), 1)
     # for x in range(51):
     #     cv2.line(origin_img_sized, (8 * (x + 1), 0), (8 * (x + 1), 416), (0, 0, 255), 1)
-    # cv2.imwrite('visualization.bmp', origin_img_sized)
+    cv2.imwrite('out.bmp', origin_img_sized)
 
 
 def get_data(chunk):
