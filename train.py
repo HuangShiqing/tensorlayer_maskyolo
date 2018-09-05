@@ -9,6 +9,7 @@ import time
 import os
 
 
+# y_true [16,52,52]
 def yolo_loss(y_pred, y_true):
     # out_c = tf.sigmoid(y_pred[..., 0])  # tf.expand_dims(tf.sigmoid(y_pred[..., 0]), axis=-1)
     # out_class = tf.sigmoid(y_pred[..., 1])  # * len(Gb_labels)  # tf.expand_dims(tf.sigmoid(y_pred[..., 1]))
@@ -17,27 +18,35 @@ def yolo_loss(y_pred, y_true):
     noobject_mask = 1 - object_mask
 
     true_c = object_mask
-    true_class = y_true / (len(Gb_labels)-1)
+    # true_class = y_true / (len(Gb_labels)-1)
+    y_true = tf.cast(y_true, tf.uint8)
+    true_class = tf.one_hot(y_true, 21)
 
     loss_c = tf.reduce_sum(
-        5 * object_mask * tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred[..., 0], labels=true_c)) / Gb_batch_size
-    # noobject_mask * tl.cost.binary_cross_entropy(output=out_c, target=true_c)
-    # loss_class = tf.reduce_sum(
-    #     5 * object_mask * tl.cost.binary_cross_entropy(output=out_class, target=true_class, epsilon=1e-7) + \
-    #     noobject_mask * tl.cost.binary_cross_entropy(output=out_class, target=true_class, epsilon=1e-7)) / Gb_batch_size
-    loss_class_obj = tf.reduce_sum(
-        5 * object_mask * tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred[..., 1],
-                                                                  labels=true_class)) / Gb_batch_size
-    loss_class_noobj = tf.reduce_sum(
-        noobject_mask * tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred[..., 1],
-                                                                labels=true_class)) / Gb_batch_size
-    loss_sum = loss_c + loss_class_obj + loss_class_noobj
-    # loss_sum = loss_c + loss_class
+        object_mask * tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred[..., 0], labels=true_c)) / Gb_batch_size
+    loss_class = tf.reduce_sum(object_mask * tf.nn.softmax_cross_entropy_with_logits(logits=y_pred[..., 1:],
+                                                                                     labels=true_class)) / Gb_batch_size
+    loss_sum = loss_c + loss_class
+
     tf.summary.scalar('/loss', loss_sum)
     tf.summary.scalar('/loss_c', loss_c)
-    tf.summary.scalar('/loss_class_obj', loss_class_obj)
-    tf.summary.scalar('/loss_class_noobj', loss_class_noobj)
-    # loss_sum = tf.Print(loss_sum, [loss_c, loss_class])
+    tf.summary.scalar('/loss_class', loss_class)
+
+    loss_sum = tf.Print(loss_sum, [loss_c, loss_class])
+
+    # loss_c = tf.reduce_sum(
+    #     5 * object_mask * tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred[..., 0], labels=true_c)) / Gb_batch_size
+    # loss_class_obj = tf.reduce_sum(
+    #     5 * object_mask * tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred[..., 1],
+    #                                                               labels=true_class)) / Gb_batch_size
+    # loss_class_noobj = tf.reduce_sum(
+    #     noobject_mask * tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred[..., 1],
+    #                                                             labels=true_class)) / Gb_batch_size
+    # loss_sum = loss_c + loss_class_obj + loss_class_noobj
+    # tf.summary.scalar('/loss', loss_sum)
+    # tf.summary.scalar('/loss_c', loss_c)
+    # tf.summary.scalar('/loss_class_obj', loss_class_obj)
+    # tf.summary.scalar('/loss_class_noobj', loss_class_noobj)
     # loss_sum = tf.Print(loss_sum, [loss_c, loss_class_obj, loss_class_noobj])
     return loss_sum
 
@@ -76,7 +85,7 @@ def main():
     # varis = tf.global_variables()
     # var_to_restore = [val for val in varis if 'Adam' not in val.name and 'optimizer' not in val.name]
     # saver = tf.train.Saver(var_to_restore)
-    saver = tf.train.Saver()
+    saver = tf.train.Saver(max_to_keep=100)
     summary_op = tf.summary.merge_all()
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())

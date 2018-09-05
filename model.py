@@ -5,7 +5,7 @@ from net import Gb_all_layer_out, ResLayer, RouteLayer, upsample, conv2d_unit, d
 
 def infenence(input):
     # n_class = 80
-    n = 2
+    n = 22
     net = InputLayer(input, name='input')
     net = conv2d_unit(net, filters=32, kernels=3, strides=1, bn=True, name='0')
     net = conv2d_unit(net, filters=64, kernels=3, strides=2, bn=True, name='1')
