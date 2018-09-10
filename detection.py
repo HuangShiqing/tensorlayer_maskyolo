@@ -10,11 +10,11 @@ from tqdm import tqdm
 from net import Gb_all_layer_out, ResLayer, RouteLayer, upsample, conv2d_unit, detection
 
 # net_out = [tf.zeros(shape=(1, 52, 52, 3, 85)), tf.zeros(shape=(1, 26, 26, 3, 85)), tf.zeros(shape=(1, 13, 13, 3, 85))]
-checkpoint_dir = './ckpt/'
-ckpt_name = 'ep373-step66866-loss1389.557'
+checkpoint_dir = '/media/hsq/新加卷/ubuntu/ckpt/maskyolo/002/'
+ckpt_name = 'ep487-step43912-loss0.722'
 # label = ['knot']
 
-n = 2
+n = 22
 input_pb = tf.placeholder(tf.float32, [None, 416, 416, 3])
 net = InputLayer(input_pb, name='input')
 net = conv2d_unit(net, filters=32, kernels=3, strides=1, bn=True, name='0')
@@ -141,20 +141,25 @@ from data import resize_img, visualization
 while (True):
     img_path = input('input_path: ')
     # img_path = 'C:/Users/john/Desktop/timg.jpg'#'D:/DeepLearning/data2/VOCdevkit/VOC2012/JPEGImages/2007_000170.jpg'
-    origin_img = cv2.imread(img_path)
+    origin_img = cv2.imread(img_path + '.jpg')
     origin_img = origin_img[:, :, :: -1]
     origin_img = resize_img(origin_img)
     img = origin_img / 255.
     img = np.expand_dims(img, axis=0)
 
-    adjusted_out = tf.sigmoid(net_out)
-    out = sess.run(adjusted_out, feed_dict={input_pb: img})
+    out = sess.run(net_out, feed_dict={input_pb: img})
+    out = out[0, :, :, 1:]
+    max = np.argmax(out, axis=-1)
+    # max = max.astype(np.uint8)
+    cv2.imwrite('out1.bmp', max)
+    visualization(origin_img/255, max)
+    # adjusted_out = tf.sigmoid(net_out)
+    # out = sess.run(adjusted_out, feed_dict={input_pb: img})
+    #
+    # out = out[0, :, :, 1]
+    # out = out * 20
+    # out = np.floor(out)
+    # out = out.astype(np.uint8)
+    # cv2.imwrite('out1.bmp', out)
+    # visualization(origin_img / 255, out)
 
-    out = out[0, :, :, 1]
-    out = out * 20
-    out = np.floor(out)
-    out = out.astype(np.uint8)
-    cv2.imwrite('out1.bmp', out)
-    visualization(origin_img / 255, out)
-
-    exit()

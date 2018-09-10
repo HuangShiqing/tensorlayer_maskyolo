@@ -32,7 +32,7 @@ def yolo_loss(y_pred, y_true):
     tf.summary.scalar('/loss_c', loss_c)
     tf.summary.scalar('/loss_class', loss_class)
 
-    loss_sum = tf.Print(loss_sum, [loss_c, loss_class])
+    # loss_sum = tf.Print(loss_sum, [loss_c, loss_class])
 
     # loss_c = tf.reduce_sum(
     #     5 * object_mask * tf.nn.sigmoid_cross_entropy_with_logits(logits=y_pred[..., 0], labels=true_c)) / Gb_batch_size

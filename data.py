@@ -11,23 +11,22 @@ from varible import *
 def read_xml(ANN, pick):
     print('Parsing for {}'.format(pick))
 
+    # chunks = list()
+    # cur_dir = os.getcwd()
+    # os.chdir(ANN)
+    # annotations = os.listdir('.')
+    # size = len(annotations)
+
     chunks = list()
     cur_dir = os.getcwd()
     os.chdir(ANN)
-    annotations = os.listdir('.')
+    path = '/home/hsq/DeepLearning/data/VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt'
+    annotations = []
+    with open(path) as fh:
+        for line in fh:
+            temp = ANN + line.strip() + '.xml'
+            annotations.append(temp)
     size = len(annotations)
-
-    # dumps = list()
-    # cur_dir = os.getcwd()
-    # os.chdir(ANN)
-    # path = '/home/hsq/DeepLearning/data/car/bdd100k/daytime.txt'
-    # annotations = []
-    # with open(path) as fh:
-    #     for line in tqdm(fh):
-    #         temp = '/home/hsq/DeepLearning/data/car/bdd100k/labels/100k/train_xml/' + line.strip()[-21:].rstrip(
-    #             '.jpg') + '.xml'
-    #         annotations.append(temp)
-    # size = len(annotations)
 
     for file in tqdm(annotations):
         # actual parsing
@@ -161,6 +160,7 @@ def visualization(origin_img_sized, segment_data):
                                                  origin_img_sized[:, :, i])
     # plt.imshow(origin_img_sized)
     # plt.show()
+
     origin_img_sized = origin_img_sized[:, :, ::-1]
     # origin_img_sized = origin_img_sized.copy()
     # for y in range(51):
