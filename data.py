@@ -20,7 +20,7 @@ def read_xml(ANN, pick):
     chunks = list()
     cur_dir = os.getcwd()
     os.chdir(ANN)
-    path = '/home/hsq/DeepLearning/data/VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt'
+    path = 'D:/DeepLearning/data2/VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt'  # '/home/hsq/DeepLearning/data/VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt'
     annotations = []
     with open(path) as fh:
         for line in fh:
@@ -158,16 +158,42 @@ def visualization(origin_img_sized, segment_data):
             origin_img_sized[:, :, i] = np.where(origin_mask == j,
                                                  origin_img_sized[:, :, i] * 0.5 + 0.5 * Gb_colors[j][i],
                                                  origin_img_sized[:, :, i])
-    # plt.imshow(origin_img_sized)
-    # plt.show()
+    plt.imshow(origin_img_sized)
+    plt.show()
 
-    origin_img_sized = origin_img_sized[:, :, ::-1]
+    # origin_img_sized = origin_img_sized[:, :, ::-1]
     # origin_img_sized = origin_img_sized.copy()
     # for y in range(51):
     #     cv2.line(origin_img_sized, (0, 8 * (y + 1)), (416, 8 * (y + 1)), (0, 0, 255), 1)
     # for x in range(51):
     #     cv2.line(origin_img_sized, (8 * (x + 1), 0), (8 * (x + 1), 416), (0, 0, 255), 1)
-    cv2.imwrite('out.bmp', origin_img_sized)
+    # cv2.imwrite('out.bmp', origin_img_sized)
+
+
+def random_flip(image, flip):
+    if flip == 1: return cv2.flip(image, 1)
+    return image
+
+
+def random_distort_image(image, hue=18, saturation=1.5, exposure=1.5):
+    def _rand_scale(scale):
+        scale = np.random.uniform(1, scale)
+        return scale if (np.random.randint(2) == 0) else 1. / scale
+    # determine scale factors
+    dhue = np.random.uniform(-hue, hue)
+    dsat = _rand_scale(saturation)
+    dexp = _rand_scale(exposure)
+    # convert RGB space to HSV space
+    image = cv2.cvtColor(image, cv2.COLOR_RGB2HSV).astype('float')
+    # change satuation and exposure
+    image[:, :, 1] *= dsat
+    image[:, :, 2] *= dexp
+    # change hue
+    image[:, :, 0] += dhue
+    image[:, :, 0] -= (image[:, :, 0] > 180) * 180
+    image[:, :, 0] += (image[:, :, 0] < 0) * 180
+    # convert back to RGB from HSV
+    return cv2.cvtColor(image.astype('uint8'), cv2.COLOR_HSV2RGB)
 
 
 def get_data(chunk):
@@ -180,6 +206,12 @@ def get_data(chunk):
     segment_img = segment_img[:, :, :: -1]
     origin_img_sized = resize_img(origin_img)
     segment_img_sized = resize_img(segment_img)
+
+    # augment
+    flip = np.random.randint(2)
+    origin_img_sized = random_flip(origin_img_sized, flip)
+    segment_img_sized = random_flip(segment_img_sized, flip)
+    origin_img_sized = random_distort_image(origin_img_sized)
 
     xml_labels = chunk[1]
     results = list()
