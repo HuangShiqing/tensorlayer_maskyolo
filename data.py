@@ -20,7 +20,7 @@ def read_xml(ANN, pick):
     chunks = list()
     cur_dir = os.getcwd()
     os.chdir(ANN)
-    path = 'D:/DeepLearning/data2/VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt'  # '/home/hsq/DeepLearning/data/VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt'
+    path = '/home/hsq/DeepLearning/data/VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt'  # 'D:/DeepLearning/data2/VOCdevkit/VOC2012/ImageSets/Segmentation/train.txt'
     annotations = []
     with open(path) as fh:
         for line in fh:
@@ -179,6 +179,7 @@ def random_distort_image(image, hue=18, saturation=1.5, exposure=1.5):
     def _rand_scale(scale):
         scale = np.random.uniform(1, scale)
         return scale if (np.random.randint(2) == 0) else 1. / scale
+
     # determine scale factors
     dhue = np.random.uniform(-hue, hue)
     dsat = _rand_scale(saturation)
@@ -192,6 +193,8 @@ def random_distort_image(image, hue=18, saturation=1.5, exposure=1.5):
     image[:, :, 0] += dhue
     image[:, :, 0] -= (image[:, :, 0] > 180) * 180
     image[:, :, 0] += (image[:, :, 0] < 0) * 180
+    # avoid overflow when astype('uint8')
+    image[...] = np.clip(image[...], 0, 255)
     # convert back to RGB from HSV
     return cv2.cvtColor(image.astype('uint8'), cv2.COLOR_HSV2RGB)
 
